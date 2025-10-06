@@ -47,20 +47,23 @@ RUN mkdir -p /etc/dconf/db/local.d && \
     "picture-options='zoom'" > /etc/dconf/db/local.d/00-swiftos && \
     dconf update
 # --------------------------------------------------
-# SwiftOS custom login sound setup
+# SwiftOS Custom Login Sound Setup
 # --------------------------------------------------
 
-# 1. Copy the login sound into the image
+# 1. Copy the login sound file into the image
 COPY files/sounds/swiftos-login.ogg /usr/share/sounds/swiftos-login.ogg
 
-# 2. Create the playback script (proper heredoc format)
-RUN mkdir -p /usr/local/bin || true
-RUN tee /usr/local/bin/swiftos-play-login-sound.sh > /dev/null <<'EOF'
+# 2. Create the playback script in /opt (writable during image build)
+RUN mkdir -p /opt/swiftos
+RUN tee /opt/swiftos/swiftos-play-login-sound.sh > /dev/null <<'EOF'
 #!/bin/sh
-# Play login sound once per session
+# Play SwiftOS login sound at session start
+
+# Avoid replaying if already played this session
 LOCKFILE="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/swiftos-login-played"
 [ -e "$LOCKFILE" ] && exit 0
 
+# Wait a bit for audio to initialize
 for i in 1 2 3 4 5; do
   if command -v paplay >/dev/null 2>&1; then
     paplay /usr/share/sounds/swiftos-login.ogg && touch "$LOCKFILE" && exit 0
@@ -69,19 +72,24 @@ for i in 1 2 3 4 5; do
   fi
   sleep 1
 done
+
 exit 1
 EOF
-RUN chmod +x /usr/local/bin/swiftos-play-login-sound.sh
+RUN chmod +x /opt/swiftos/swiftos-play-login-sound.sh
 
-# 3. Create GNOME autostart entry
-RUN tee /etc/xdg/autostart/swiftos-login-sound.desktop > /dev/null <<'EOF'
-[Desktop Entry]
-Type=Application
-Name=SwiftOS Login Sound
-Exec=/usr/local/bin/swiftos-play-login-sound.sh
-NoDisplay=true
-OnlyShowIn=GNOME;
-X-GNOME-Autostart-enabled=true
+# 3. Create a systemd user service to trigger playback at login
+RUN mkdir -p /etc/systemd/user
+RUN tee /etc/systemd/user/swiftos-login-sound.service > /dev/null <<'EOF'
+[Unit]
+Description=Play SwiftOS login sound
+
+[Service]
+Type=oneshot
+ExecStart=/opt/swiftos/swiftos-play-login-sound.sh
+
+[Install]
+WantedBy=default.target
 EOF
 
-
+# 4. Enable the service globally for all users
+RUN systemctl --global enable swiftos-login-sound.service
