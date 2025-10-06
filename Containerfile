@@ -54,7 +54,7 @@ RUN mkdir -p /etc/dconf/db/local.d && \
 COPY files/sounds/swiftos-login.ogg /usr/share/sounds/swiftos-login.ogg
 
 # 2. Create the playback script (proper heredoc format)
-RUN mkdir -p /usr/local/bin
+RUN mkdir -p /usr/local/bin || true
 RUN tee /usr/local/bin/swiftos-play-login-sound.sh > /dev/null <<'EOF'
 #!/bin/sh
 # Play login sound once per session
