@@ -27,3 +27,12 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
 ### LINTING
 ## Verify final image and contents are correct.
 RUN bootc container lint
+
+# Add default wallpaper and system dconf default for GNOME
+COPY swiftos-default.png /usr/share/backgrounds/swiftos-default.png
+
+RUN mkdir -p /etc/dconf/db/local.d && \
+    printf '%s\n' "[org/gnome/desktop/background]" \
+    "picture-uri='file:///usr/share/backgrounds/swiftos-default.png'" \
+    "picture-options='zoom'" > /etc/dconf/db/local.d/00-swiftos && \
+    dconf update
