@@ -36,3 +36,14 @@ RUN mkdir -p /etc/dconf/db/local.d && \
     "picture-uri='file:///usr/share/backgrounds/swiftos-default.png'" \
     "picture-options='zoom'" > /etc/dconf/db/local.d/00-swiftos && \
     dconf update
+
+# Override Bazzite default wallpaper
+COPY files/swiftos-default.png /usr/share/backgrounds/default.jxl
+
+# Set system default for GNOME
+RUN mkdir -p /etc/dconf/db/local.d && \
+    printf '%s\n' "[org/gnome/desktop/background]" \
+    "picture-uri='file:///usr/share/backgrounds/default.jxl'" \
+    "picture-options='zoom'" > /etc/dconf/db/local.d/00-swiftos && \
+    dconf update
+
