@@ -38,7 +38,7 @@ RUN mkdir -p /etc/dconf/db/local.d && \
     dconf update
 
 # Override Bazzite default wallpaper
-COPY files/swiftos-default.png /usr/share/backgrounds/default.jxl
+COPY swiftos-default.png /usr/share/backgrounds/default.jxl
 
 # Set system default for GNOME
 RUN mkdir -p /etc/dconf/db/local.d && \
