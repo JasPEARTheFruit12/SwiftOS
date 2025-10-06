@@ -47,3 +47,12 @@ RUN mkdir -p /etc/dconf/db/local.d && \
     "picture-options='zoom'" > /etc/dconf/db/local.d/00-swiftos && \
     dconf update
 
+# Add custom login sound
+COPY files/sounds/swiftos-login.ogg /usr/share/sounds/swiftos-login.ogg
+
+# Enable GNOME login sounds
+RUN mkdir -p /etc/dconf/db/local.d && \
+    printf '%s\n' "[org/gnome/desktop/sound]" \
+    "event-sounds=true" \
+    "theme-name='swiftos-login'" > /etc/dconf/db/local.d/01-swiftos-sound && \
+    dconf update
