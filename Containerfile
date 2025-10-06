@@ -46,22 +46,3 @@ RUN mkdir -p /etc/dconf/db/local.d && \
     "picture-uri='file:///usr/share/backgrounds/default.jxl'" \
     "picture-options='zoom'" > /etc/dconf/db/local.d/00-swiftos && \
     dconf update
-# --------------------------------------------------
-# SwiftOS Custom Login Sound Setup (final fixed)
-# --------------------------------------------------
-
-# STEP: Copy login sound
-COPY files/sounds/swiftos-login.ogg /usr/share/sounds/swiftos-login.ogg
-
-# STEP: Ensure /usr/local/bin exists
-RUN mkdir -p /usr/local/bin
-
-# STEP: Create the login sound script
-RUN tee /usr/local/bin/swiftos-play-login-sound.sh > /dev/null <<'EOF'
-#!/bin/sh
-# Play SwiftOS login sound
-paplay /usr/share/sounds/swiftos-login.ogg
-EOF
-
-# STEP: Make the script executable
-RUN chmod +x /usr/local/bin/swiftos-play-login-sound.sh
