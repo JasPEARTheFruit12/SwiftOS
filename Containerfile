@@ -50,48 +50,18 @@ RUN mkdir -p /etc/dconf/db/local.d && \
 # SwiftOS Custom Login Sound Setup (final fixed)
 # --------------------------------------------------
 
-# 1. Copy the login sound file into the image
+# STEP: Copy login sound
 COPY files/sounds/swiftos-login.ogg /usr/share/sounds/swiftos-login.ogg
 
-# 2. Create the playback script in /usr/local/bin (safe for immutable layers)
-RUN install -d -m 0755 /usr/local/bin || true
+# STEP: Ensure /usr/local/bin exists
+RUN mkdir -p /usr/local/bin
+
+# STEP: Create the login sound script
 RUN tee /usr/local/bin/swiftos-play-login-sound.sh > /dev/null <<'EOF'
 #!/bin/sh
-# Play SwiftOS login sound at session start
-
-# Avoid replaying if already played this session
-LOCKFILE="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/swiftos-login-played"
-[ -e "$LOCKFILE" ] && exit 0
-
-# Wait a bit for audio to initialize
-for i in 1 2 3 4 5; do
-  if command -v paplay >/dev/null 2>&1; then
-    paplay /usr/share/sounds/swiftos-login.ogg && touch "$LOCKFILE" && exit 0
-  elif command -v canberra-gtk-play >/dev/null 2>&1; then
-    canberra-gtk-play -f /usr/share/sounds/swiftos-login.ogg && touch "$LOCKFILE" && exit 0
-  fi
-  sleep 1
-done
-
-exit 1
+# Play SwiftOS login sound
+paplay /usr/share/sounds/swiftos-login.ogg
 EOF
+
+# STEP: Make the script executable
 RUN chmod +x /usr/local/bin/swiftos-play-login-sound.sh
-
-# 3. Create a systemd user service to trigger playback at login
-RUN install -d -m 0755 /etc/systemd/user || true
-RUN tee /etc/systemd/user/swiftos-login-sound.service > /dev/null <<'EOF'
-[Unit]
-Description=Play SwiftOS login sound
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/bin/swiftos-play-login-sound.sh
-
-[Install]
-WantedBy=default.target
-EOF
-
-# 4. Enable the service globally for all users
-RUN systemctl --global enable swiftos-login-sound.service || true
-
-
