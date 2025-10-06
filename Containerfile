@@ -47,15 +47,15 @@ RUN mkdir -p /etc/dconf/db/local.d && \
     "picture-options='zoom'" > /etc/dconf/db/local.d/00-swiftos && \
     dconf update
 # --------------------------------------------------
-# SwiftOS Custom Login Sound Setup (fixed)
+# SwiftOS Custom Login Sound Setup (final fixed)
 # --------------------------------------------------
 
 # 1. Copy the login sound file into the image
 COPY files/sounds/swiftos-login.ogg /usr/share/sounds/swiftos-login.ogg
 
-# 2. Create the playback script in /opt (safe mkdir)
-RUN install -d -m 0755 /opt/swiftos || true
-RUN tee /opt/swiftos/swiftos-play-login-sound.sh > /dev/null <<'EOF'
+# 2. Create the playback script in /usr/local/bin (safe for immutable layers)
+RUN install -d -m 0755 /usr/local/bin || true
+RUN tee /usr/local/bin/swiftos-play-login-sound.sh > /dev/null <<'EOF'
 #!/bin/sh
 # Play SwiftOS login sound at session start
 
@@ -75,7 +75,7 @@ done
 
 exit 1
 EOF
-RUN chmod +x /opt/swiftos/swiftos-play-login-sound.sh
+RUN chmod +x /usr/local/bin/swiftos-play-login-sound.sh
 
 # 3. Create a systemd user service to trigger playback at login
 RUN install -d -m 0755 /etc/systemd/user || true
@@ -85,7 +85,7 @@ Description=Play SwiftOS login sound
 
 [Service]
 Type=oneshot
-ExecStart=/opt/swiftos/swiftos-play-login-sound.sh
+ExecStart=/usr/local/bin/swiftos-play-login-sound.sh
 
 [Install]
 WantedBy=default.target
@@ -93,4 +93,5 @@ EOF
 
 # 4. Enable the service globally for all users
 RUN systemctl --global enable swiftos-login-sound.service || true
+
 
