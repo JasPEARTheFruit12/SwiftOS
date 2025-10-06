@@ -46,19 +46,21 @@ RUN mkdir -p /etc/dconf/db/local.d && \
     "picture-uri='file:///usr/share/backgrounds/default.jxl'" \
     "picture-options='zoom'" > /etc/dconf/db/local.d/00-swiftos && \
     dconf update
+# --------------------------------------------------
+# SwiftOS custom login sound setup
+# --------------------------------------------------
 
-# Ensure the login sound is in place (adjust path if needed)
+# 1. Copy the login sound into the image
 COPY files/sounds/swiftos-login.ogg /usr/share/sounds/swiftos-login.ogg
 
-# Create a tiny startup script that plays the login sound once per session
-RUN mkdir -p /usr/local/bin && \
-    tee /usr/local/bin/swiftos-play-login-sound.sh > /dev/null <<'EOF'
+# 2. Create the playback script (proper heredoc format)
+RUN mkdir -p /usr/local/bin
+RUN tee /usr/local/bin/swiftos-play-login-sound.sh > /dev/null <<'EOF'
 #!/bin/sh
-# play login sound once per session (uses paplay or canberra-gtk-play)
+# Play login sound once per session
 LOCKFILE="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/swiftos-login-played"
 [ -e "$LOCKFILE" ] && exit 0
 
-# Wait briefly for the sound server to start and try to play
 for i in 1 2 3 4 5; do
   if command -v paplay >/dev/null 2>&1; then
     paplay /usr/share/sounds/swiftos-login.ogg && touch "$LOCKFILE" && exit 0
@@ -71,7 +73,7 @@ exit 1
 EOF
 RUN chmod +x /usr/local/bin/swiftos-play-login-sound.sh
 
-# Install autostart .desktop so the script runs for each graphical user session
+# 3. Create GNOME autostart entry
 RUN tee /etc/xdg/autostart/swiftos-login-sound.desktop > /dev/null <<'EOF'
 [Desktop Entry]
 Type=Application
@@ -81,4 +83,5 @@ NoDisplay=true
 OnlyShowIn=GNOME;
 X-GNOME-Autostart-enabled=true
 EOF
+
 
