@@ -46,3 +46,42 @@ RUN mkdir -p /etc/dconf/db/local.d && \
     "picture-uri='file:///usr/share/backgrounds/default.jxl'" \
     "picture-options='zoom'" > /etc/dconf/db/local.d/00-swiftos && \
     dconf update
+
+### --- SwiftOS Theme Configuration ---
+
+# Copy GTK, Icon, and Cursor themes to their appropriate system directories
+# GTK themes (both GTK3 and GTK4)
+COPY files/themes/gtk-3.0 /usr/share/themes/SwiftOS/gtk-3.0
+COPY files/themes/gtk-4.0 /usr/share/themes/SwiftOS/gtk-4.0
+
+# Icon theme
+COPY files/themes/icon-theme /usr/share/icons/SwiftOS-Icons
+
+# Cursor theme
+COPY files/themes/cursor-theme /usr/share/icons/SwiftOS-Cursor
+
+# Apply system-wide defaults for GNOME
+RUN mkdir -p /etc/dconf/db/local.d && \
+    printf '%s\n' \
+    "[org/gnome/desktop/interface]" \
+    "gtk-theme-name='SwiftOS'" \
+    "icon-theme='SwiftOS-Icons'" \
+    "cursor-theme='SwiftOS-Cursor'" \
+    "font-name='Cantarell 11'" \
+    "cursor-size=24" \
+    > /etc/dconf/db/local.d/00-swiftos-theme && \
+    dconf update
+
+# Optional: match the login screen (GDM) with the same theme
+RUN mkdir -p /etc/dconf/db/gdm.d && \
+    printf '%s\n' \
+    "[org/gnome/desktop/interface]" \
+    "gtk-theme-name='SwiftOS'" \
+    "icon-theme='SwiftOS-Icons'" \
+    "cursor-theme='SwiftOS-Cursor'" \
+    "font-name='Cantarell 11'" \
+    "cursor-size=24" \
+    > /etc/dconf/db/gdm.d/00-swiftos-gdm-theme && \
+    dconf update
+
+### --- End Theme Configuration ---
