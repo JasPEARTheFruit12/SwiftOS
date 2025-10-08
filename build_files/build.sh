@@ -12,6 +12,37 @@ set -ouex pipefail
 # this installs a package from fedora repos
 dnf5 install -y tmux 
 
+
+# --- Install Emulators & Gaming Tools ---
+dnf5 install -y \
+    steam \
+    lutris \
+    retroarch \
+    dolphin-emu \
+    pcsx2 \
+    rpcs3 \
+    ryujinx \
+    yuzu \
+    mame \
+    ppsspp \
+    snes9x \
+    chromium \
+    && dnf5 clean all
+
+# --- Xbox Cloud Gaming (via Web App) ---
+# We'll create a desktop shortcut that launches it in Chromium
+mkdir -p /usr/share/applications
+cat << 'EOF' > /usr/share/applications/xbox-cloud-gaming.desktop
+[Desktop Entry]
+Name=Xbox Cloud Gaming
+Comment=Play Xbox Cloud Gaming through Chromium
+Exec=chromium --app=https://www.xbox.com/play --start-maximized
+Icon=xbox
+Terminal=false
+Type=Application
+Categories=Game;
+EOF
+
 # Use a COPR Example:
 #
 # dnf5 -y copr enable ublue-os/staging
