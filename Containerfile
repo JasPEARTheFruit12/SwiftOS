@@ -83,5 +83,6 @@ RUN mkdir -p /etc/dconf/db/gdm.d && \
     "cursor-size=24" \
     > /etc/dconf/db/gdm.d/00-swiftos-gdm-theme && \
     dconf update
+LABEL bootc.rootfs_type="btrfs"
 
 ### --- End Theme Configuration ---
