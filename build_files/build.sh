@@ -1,48 +1,43 @@
 #!/bin/bash
 set -oue pipefail
 
-### Preinstall Software on Bazzite/ublue (rpm-ostree based)
-echo "📦 Installing preinstalled software into SwiftOS (rpm-ostree base)..."
+echo "🚀 Starting SwiftOS build: installing packages..."
 
-# === EMULATORS & GAMING UTILITIES ===
+### -------------------------------
+### 1️⃣ RPM-OSTREE packages
+### -------------------------------
+echo "📦 Installing RPM-based apps..."
 rpm-ostree install -y \
-  tmux \
-  retroarch \
-  dolphin-emu \
-  pcsx2 \
-  ppsspp-qt \
-  snes9x \
-  desmume \
-  yuzu \
-  cemu \
-  ryujinx \
-  steam \
-  lutris \
-  mangohud \
-  goverlay \
-  gamemode \
-  wine \
-  winetricks \
-  protonup-qt
+    tmux \
+    retroarch \
+    dolphin-emu \
+    pcsx2 \
+    rpcs3 \
+    steam \
+    lutris \
+    heroic-games-launcher \
+    bottles
 
-# === Microsoft Edge (for Xbox Cloud Gaming) ===
-rpm-ostree install -y microsoft-edge-stable || true
+### -------------------------------
+### 2️⃣ Flatpak packages (Flathub)
+### -------------------------------
+echo "🌐 Installing Flatpak-only apps..."
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
-# === Create Xbox Cloud Gaming Web App Shortcut ===
-if command -v microsoft-edge >/dev/null 2>&1; then
-  echo "🌐 Creating Xbox Cloud Gaming Web App..."
-  mkdir -p /usr/share/applications/
-  cat <<EOF > /usr/share/applications/xbox-cloud-gaming.desktop
-[Desktop Entry]
-Name=Xbox Cloud Gaming
-Exec=microsoft-edge --app=https://www.xbox.com/play
-Icon=xbox
-Type=Application
-Categories=Game;
-EOF
-fi
+# Install Cemu and PPSSPP via Flatpak
+flatpak install -y flathub info.cemu.Cemu org.ppsspp.PPSSPP || true
 
-# === Enable Podman socket ===
+### -------------------------------
+### 3️⃣ Optional: Enable Podman
+### -------------------------------
+echo "🔧 Enabling podman.socket..."
 systemctl enable podman.socket
 
-echo "✅ Preinstalled apps and emulators successfully added to SwiftOS!"
+### -------------------------------
+### 4️⃣ Clean up caches
+### -------------------------------
+echo "🧹 Cleaning up caches..."
+rpm-ostree cleanup -m
+flatpak uninstall --unused -y
+
+echo "✅ SwiftOS build: preinstalled apps complete!"
