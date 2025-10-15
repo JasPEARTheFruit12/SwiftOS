@@ -4,7 +4,7 @@ set -oue pipefail
 echo "🚀 Starting SwiftOS build: installing packages..."
 
 ### -------------------------------
-### 1️⃣ RPM-OSTREE packages
+### 1️⃣ RPM-OSTREE packages (native)
 ### -------------------------------
 echo "📦 Installing RPM-based apps..."
 rpm-ostree install -y \
@@ -12,10 +12,8 @@ rpm-ostree install -y \
     retroarch \
     dolphin-emu \
     pcsx2 \
-    rpcs3 \
     steam \
     lutris \
-    heroic-games-launcher \
     bottles
 
 ### -------------------------------
@@ -24,8 +22,12 @@ rpm-ostree install -y \
 echo "🌐 Installing Flatpak-only apps..."
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
-# Install Cemu and PPSSPP via Flatpak
-flatpak install -y flathub info.cemu.Cemu org.ppsspp.PPSSPP || true
+# Flatpak apps
+flatpak install -y flathub \
+    info.cemu.Cemu \
+    org.ppsspp.PPSSPP \
+    org.rpcs3.RPCS3 \
+    com.heroicgameslauncher.Heroic || true
 
 ### -------------------------------
 ### 3️⃣ Optional: Enable Podman
