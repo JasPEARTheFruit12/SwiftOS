@@ -1,55 +1,48 @@
 #!/bin/bash
+set -oue pipefail
 
-set -ouex pipefail
+### Preinstall Software on Bazzite/ublue (rpm-ostree based)
+echo "📦 Installing preinstalled software into SwiftOS (rpm-ostree base)..."
 
-### Install packages
+# === EMULATORS & GAMING UTILITIES ===
+rpm-ostree install -y \
+  tmux \
+  retroarch \
+  dolphin-emu \
+  pcsx2 \
+  ppsspp-qt \
+  snes9x \
+  desmume \
+  yuzu \
+  cemu \
+  ryujinx \
+  steam \
+  lutris \
+  mangohud \
+  goverlay \
+  gamemode \
+  wine \
+  winetricks \
+  protonup-qt
 
-# Packages can be installed from any enabled yum repo on the image.
-# RPMfusion repos are available by default in ublue main images
-# List of rpmfusion packages can be found here:
-# https://mirrors.rpmfusion.org/mirrorlist?path=free/fedora/updates/39/x86_64/repoview/index.html&protocol=https&redirect=1
+# === Microsoft Edge (for Xbox Cloud Gaming) ===
+rpm-ostree install -y microsoft-edge-stable || true
 
-# this installs a package from fedora repos
-dnf5 install -y tmux 
-
-
-# --- Install Emulators & Gaming Tools ---
-dnf5 install -y \
-    steam \
-    lutris \
-    retroarch \
-    dolphin-emu \
-    pcsx2 \
-    rpcs3 \
-    ryujinx \
-    yuzu \
-    mame \
-    ppsspp \
-    snes9x \
-    chromium \
-    && dnf5 clean all
-
-# --- Xbox Cloud Gaming (via Web App) ---
-# We'll create a desktop shortcut that launches it in Chromium
-mkdir -p /usr/share/applications
-cat << 'EOF' > /usr/share/applications/xbox-cloud-gaming.desktop
+# === Create Xbox Cloud Gaming Web App Shortcut ===
+if command -v microsoft-edge >/dev/null 2>&1; then
+  echo "🌐 Creating Xbox Cloud Gaming Web App..."
+  mkdir -p /usr/share/applications/
+  cat <<EOF > /usr/share/applications/xbox-cloud-gaming.desktop
 [Desktop Entry]
 Name=Xbox Cloud Gaming
-Comment=Play Xbox Cloud Gaming through Chromium
-Exec=chromium --app=https://www.xbox.com/play --start-maximized
+Exec=microsoft-edge --app=https://www.xbox.com/play
 Icon=xbox
-Terminal=false
 Type=Application
 Categories=Game;
 EOF
+fi
 
-# Use a COPR Example:
-#
-# dnf5 -y copr enable ublue-os/staging
-# dnf5 -y install package
-# Disable COPRs so they don't end up enabled on the final image:
-# dnf5 -y copr disable ublue-os/staging
-
-#### Example for enabling a System Unit File
-
+# === Enable Podman socket ===
 systemctl enable podman.socket
+
+echo "✅ Preinstalled apps and emulators successfully added to SwiftOS!"
